@@ -44,7 +44,6 @@ const ioSocket = (io) => {
 
     socket.on('disconnect', () => {
       delete players[id];
-      coin = undefined;
       io.emit('removePlayer', id);
       log('remove player', id);
       log('a user disconnected');

@@ -119,6 +119,7 @@ const draw = () => {
     if (coin) {
       if (thisPlayer.collision(coin)) {
         socket.emit('collision', thisPlayer.id, coin.id);
+        coin = undefined;
         socket.emit('newCoin', newCoin());
       } else {
         coin.draw(ctx);
