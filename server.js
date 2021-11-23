@@ -15,6 +15,7 @@ const io = socket(httpServer);
 
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use('/assets', express.static(process.cwd() + '/assets'));
+app.use('/socket.io', express.static(process.cwd() + '/socket.io'));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

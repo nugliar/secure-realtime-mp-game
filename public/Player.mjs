@@ -4,8 +4,8 @@ class Player {
   constructor({id, x, y, avatar, score = 0}) {
     this.x = x;
     this.y = y;
-    this.w = canvasProps.avatarWidth;
-    this.h = canvasProps.avatarHeight;
+    this.w = canvasProps.playerRadius;
+    this.h = canvasProps.playerRadius;
     this.score = score;
     this.id = id;
     this.avatar = avatar;
@@ -44,7 +44,7 @@ class Player {
   }
 
   collision(item) {
-    const r = canvasProps.avatarWidth
+    const r = canvasProps.playerRadius * 0.5;
     const pX = this.x + this.w / 2;
     const pY = this.y + this.h / 2;
     const cX = item.x + item.w / 2;

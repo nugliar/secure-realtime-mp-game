@@ -4,8 +4,8 @@ class Collectible {
   constructor({x, y, value, id, avatar}) {
     this.x = x;
     this.y = y;
-    this.w = canvasProps.avatarWidth;
-    this.h = canvasProps.avatarHeight;
+    this.w = canvasProps.collectibleRadius;
+    this.h = canvasProps.collectibleRadius;
     this.value = value;
     this.id = id;
     this.avatar = avatar;

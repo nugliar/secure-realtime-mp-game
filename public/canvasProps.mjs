@@ -4,19 +4,19 @@ const canvasHeight = 480;
 const canvasProps = {
   width: canvasWidth,
   height: canvasHeight,
-  avatarWidth: 30,
-  avatarHeight: 30,
+  playerRadius: 30,
+  collectibleRadius: 20,
   borderSize: 5,
   borderTopSize: 50,
   get playerLimit() {
     return {
       x: [
         this.borderSize,
-        this.width - this.borderSize - this.avatarWidth
+        this.width - this.borderSize - this.playerRadius
       ],
       y: [
         this.borderTopSize,
-        this.height - this.borderSize - this.avatarHeight
+        this.height - this.borderSize - this.playerRadius
       ]
     }
   }
