@@ -5,7 +5,6 @@ const bodyParser = require('body-parser');
 const expect = require('chai');
 const socket = require('socket.io');
 const helmet = require('helmet');
-const cors = require('cors');
 const fs = require('fs');
 
 const fccTestingRoutes = require('./routes/fcctesting.js');
@@ -38,8 +37,6 @@ app.use(function (req, res, next) {
   res.header('pragma', 'no-cache');
   next();
 })
-
-app.use(cors({origin: '*'})); //For FCC testing purposes only
 
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use('/assets', express.static(process.cwd() + '/assets'));
