@@ -1,3 +1,5 @@
+*.pem
+*.key
 .vscode/*
 .env
 .glitch-assets

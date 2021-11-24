@@ -10,9 +10,17 @@ canvas {
   margin: auto;
 }
 
+h1 {
+  text-align: center;
+}
+
 .container {
   display: flex;
   flex-direction: column;
+}
+
+#hor-line {
+  margin: 25px;
 }
 
 @media (min-width: 800px) {
