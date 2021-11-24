@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const expect = require('chai');
 const socket = require('socket.io');
 const helmet = require('helmet');
+const cors = require('cors');
 const fs = require('fs');
 
 const fccTestingRoutes = require('./routes/fcctesting.js');
@@ -28,14 +29,17 @@ app.use(
   })
 );
 
-// no cache, fake powered-by
 app.use(function (req, res, next) {
-  res.header('X-Powered-By', 'PHP 7.4.3');
-  res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-  res.header('Expires', '-1');
-  res.header('Pragma', 'no-cache');
+  res.header('x-powered-by', 'PHP 7.4.3');
+  res.header('cache-control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.header('surrogate-control', 'no-store');
+  res.header('x-xss-protection', '1; mode=block');
+  res.header('expires', '0');
+  res.header('pragma', 'no-cache');
   next();
 })
+
+app.use(cors({origin: '*'})); //For FCC testing purposes only
 
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use('/assets', express.static(process.cwd() + '/assets'));
