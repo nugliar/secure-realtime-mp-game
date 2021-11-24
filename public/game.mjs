@@ -1,137 +1,108 @@
 import Player from './Player.mjs';
 import Collectible from './Collectible.mjs';
-import controller from './controller.mjs'
-import { canvasProps, randomPositionOnAxis } from './canvasProps.mjs'
+import controls from './controller.mjs';
+import { getRandomPosition, canvasProps } from './canvasProps.mjs';
 
 const socket = io();
 const canvas = document.getElementById('game-window');
-const ctx = canvas.getContext('2d', {alpha: false});
+const ctx = canvas.getContext('2d', { alpha: false });
 
-const avatars = ['bee', 'dog', 'fox', 'turtle', 'wolf'];
-const coins = ['coin', 'coins', 'dollar'];
-
-const randomElem = (arr) => arr[Math.floor(Math.random() * arr.length)];
-
-const newCoin = () => {
-  const idx = Math.floor(Math.random() * 3);
-  const coinName = coins[idx];
-  const coinValue = Math.pow(10, idx);
-
-  return new Collectible({
-    x: randomPositionOnAxis('x'),
-    y: randomPositionOnAxis('y'),
-    id: Math.random().toString(16).slice(2),
-    avatar: `./public/img/${coinName}.png`,
-    value: coinValue
-  })
+const loadImage = src => {
+  const img = new Image();
+  img.src = src;
+  return img;
 }
 
-let players = {};
-let thisPlayer;
-let coin;
+const coinArt = loadImage('./public/img/coin.png');
+const manyCoinsArt = loadImage('./public/img/coins.png');
+const dollarArt = loadImage('./public/img/dollar.png');
+const mainPlayerArt = loadImage('./public/img/turtle.png');
+const otherPlayerArt = loadImage('./public/img/bee.png');
 
-socket.on('connect', () => {
+let tick;
+let currPlayers = [];
+let item;
 
-  const initProps = {
-    id: socket.id,
-    x: randomPositionOnAxis('x'),
-    y: randomPositionOnAxis('y'),
-    avatar: `./public/img/${randomElem(avatars)}.png`
-  };
+socket.on('init', ({ id, players, coin }) => {
+  cancelAnimationFrame(tick);
 
-  thisPlayer = new Player(initProps);
-  players[thisPlayer.id] = thisPlayer;
-
-  socket.emit('newPlayer', {
-    id: thisPlayer.id,
-    x: thisPlayer.x,
-    y: thisPlayer.y,
-    score: thisPlayer.score,
-    avatar: thisPlayer.avatar
+  const mainPlayer = new Player({
+    x: getRandomPosition(canvasProps.playFieldMinX, canvasProps.playFieldMaxX, 5),
+    y: getRandomPosition(canvasProps.playFieldMinY, canvasProps.playFieldMaxY, 5),
+    id,
+    main: true
   });
 
-  socket.on('newPlayer', (updatedPlayers, coinData) => {
-    if (!coinData) {
-      socket.emit('newCoin', newCoin());
-    } else {
-      coin = new Collectible(coinData);
-    }
+  controls(mainPlayer, socket);
 
-    for (const id in updatedPlayers) {
-      if (!players[id]) {
-        const newPlayer = new Player(updatedPlayers[id]);
-        players[id] = newPlayer;
-      }
-    }
-  })
+  socket.emit('new-player', mainPlayer);
 
-  socket.on('newCoin', coinData => {
-    coin = new Collectible(coinData);
-  })
+  socket.on('new-player', obj => {
+    const playerIds = currPlayers.map(player => player.id);
+    if (!playerIds.includes(obj.id)) currPlayers.push(new Player(obj));
+  });
 
-  socket.on('movePlayer', (id, move) => {
-    if (id !== thisPlayer.id) {
-      players[id].dir[move.dir] = true;
-      players[id].x = move.x;
-      players[id].y = move.y;
-    }
-  })
+  socket.on('move-player', ({ id, dir, posObj }) => {
+    const movingPlayer = currPlayers.find(obj => obj.id === id);
+    movingPlayer.moveDir(dir);
 
-  socket.on('removePlayer', id => {
-    if (id !== thisPlayer.id) {
-      delete players[id];
-    }
-  })
+    movingPlayer.x = posObj.x;
+    movingPlayer.y = posObj.y;
+  });
 
-  socket.on('collision', (id, score) => {
-    if (players[id]) {
-      players[id].score = score;
-    }
-  })
+  socket.on('stop-player', ({ id, dir, posObj }) => {
+    const stoppingPlayer = currPlayers.find(obj => obj.id === id);
+    stoppingPlayer.stopDir(dir);
 
-  controller(thisPlayer, socket);
-})
+    stoppingPlayer.x = posObj.x;
+    stoppingPlayer.y = posObj.y;
+  });
 
-socket.on('disconnect', () => {
-  socket.emit('removePlayer', {});
-})
+  socket.on('new-coin', newCoin => {
+    item = new Collectible(newCoin);
+  });
+
+  socket.on('remove-player', id => {
+    currPlayers = currPlayers.filter(player => player.id !== id);
+  });
+
+  socket.on('update-player', playerObj => {
+    const scoringPlayer = currPlayers.find(obj => obj.id === playerObj.id);
+    scoringPlayer.score = playerObj.score;
+  });
+
+  currPlayers = players.map(val => new Player(val)).concat(mainPlayer);
+  item = new Collectible(coin);
+
+  draw();
+});
 
 const draw = () => {
-  ctx.clearRect(0, 0, canvasProps.width, canvasProps.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle ='black';
-  ctx.fillRect(0, 0, canvasProps.width, canvasProps.height);
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.strokeStyle = 'white';
-  ctx.strokeRect(
-    canvasProps.borderSize,
-    canvasProps.borderTopSize,
-    canvasProps.width - 2 * canvasProps.borderSize,
-    canvasProps.height - canvasProps.borderTopSize - canvasProps.borderSize
-  )
+  ctx.strokeRect(canvasProps.playFieldMinX, canvasProps.playFieldMinY, canvasProps.playFieldWidth, canvasProps.playFieldHeight);
 
-  if (thisPlayer) {
-    for (const [dir, active] of Object.entries(thisPlayer.dir)) {
-      if (active) {
-        thisPlayer.movePlayer(dir, 3);
-      }
-    };
-    if (coin) {
-      if (thisPlayer.collision(coin)) {
-        socket.emit('collision', thisPlayer.id, coin.id);
-        coin = undefined;
-        socket.emit('newCoin', newCoin());
-      } else {
-        coin.draw(ctx);
-      }
-    }
+  ctx.fillStyle = 'white';
+  ctx.font = `16px 'Verdana'`;
+  ctx.textAlign = 'center';
+  ctx.fillText('Controls: WASD', 100, 32.5);
+
+  ctx.font = `22px 'Verdana'`;
+  ctx.fillText('Coin Race', canvasProps.canvasWidth / 2, 32.5);
+
+  currPlayers.forEach(player => {
+    player.draw(ctx, item, { mainPlayerArt, otherPlayerArt }, currPlayers);
+  });
+
+  item.draw(ctx, { coinArt, manyCoinsArt, dollarArt });
+
+  if (item.collectedBy) {
+    socket.emit('destroy-item', { playerId: item.collectedBy, coinValue: item.value, coinId: item.id });
   }
 
-  for (const id in players) {
-    players[id].draw(ctx);
-  };
-
-  requestAnimationFrame(draw);
-};
-
-draw();
+  tick = requestAnimationFrame(draw);
+}

@@ -1,40 +1,29 @@
 const canvasWidth = 640;
 const canvasHeight = 480;
+const playerWidth = 30;
+const playerHeight = 30;
+const border = 5;
+const infoBar = 45;
+
 
 const canvasProps = {
-  width: canvasWidth,
-  height: canvasHeight,
-  playerRadius: 30,
-  collectibleRadius: 20,
-  borderSize: 5,
-  borderTopSize: 50,
-  get playerLimit() {
-    return {
-      x: [
-        this.borderSize,
-        this.width - this.borderSize - this.playerRadius
-      ],
-      y: [
-        this.borderTopSize,
-        this.height - this.borderSize - this.playerRadius
-      ]
-    }
-  }
-};
-
-const randomPositionOnAxis = (axis) => {
-  const limit = canvasProps.playerLimit;
-  const x = limit.x;
-  const y = limit.y;
-
-  if (axis == 'x') {
-    return Math.floor(x[0] + Math.random() * (x[1] - x[0]));
-  } else if (axis == 'y') {
-    return Math.floor(y[0] + Math.random() * (y[1] - y[0]));
-  }
+  canvasWidth: canvasWidth,
+  canvasHeight: canvasHeight,
+  playFieldMinX: (canvasWidth / 2) - (canvasWidth - 10) / 2,
+  playFieldMinY: (canvasHeight / 2) - (canvasHeight - 100) / 2,
+  playFieldWidth: canvasWidth - (border * 2),
+  playFieldHeight: (canvasHeight - infoBar) - (border * 2),
+  playFieldMaxX: (canvasWidth - playerWidth) - border,
+  playFieldMaxY: (canvasHeight - playerHeight) - border,
+  playerArtSize: 40,
+  collectibleArtSize: 30
 }
 
+const getRandomPosition = (min, max, multiple) => {
+  return Math.floor(Math.random() * ((max - min) / multiple)) * multiple + min;
+};
+
 export {
-  canvasProps,
-  randomPositionOnAxis
+  getRandomPosition,
+  canvasProps
 }

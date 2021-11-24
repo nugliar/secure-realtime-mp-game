@@ -1,52 +1,79 @@
-const ioSocket = (io) => {
+const { canvasProps, getRandomPosition } = require('../public/canvasProps.mjs');
 
-  let players = {};
-  let coin;
+const serverLog = (...values) => {
+  console.log('[server]:', ...values);
+}
 
-  const log = (...values) => {
-    console.log('[server]:', ...values);
+const newCoin = () => {
+  return {
+    id: Math.random().toString(16).slice(2),
+    value: Math.floor(1 + Math.random() * 3),
+    x: getRandomPosition(canvasProps.playFieldMinX, canvasProps.playFieldMaxX, 5),
+    y: getRandomPosition(canvasProps.playFieldMinY, canvasProps.playFieldMaxY, 5)
   }
+}
+
+const ioSocket = (io) => {
+  let coin = newCoin();
+  let players = [];
 
   io.on('connection', (socket) => {
-    log('a user connected');
-    let id;
+    serverLog('a user connected');
+    let curPlayer;
 
-    socket.on('newPlayer', player => {
-      id = player.id;
-      players[id] = player;
-
-      io.emit('newPlayer', players, coin);
-      log('new player', player);
+    socket.emit('init', {
+      id: socket.id,
+      players: players,
+      coin: coin
     })
 
-    socket.on('movePlayer', move => {
-      players[id].x = move.x;
-      players[id].y = move.y;
-      io.emit('movePlayer', id, { dir: move.dir, x: move.x, y: move.y });
-      log('move player', id, move.dir);
+    socket.on('new-player', newPlayer => {
+      serverLog('new player', newPlayer.id);
+      players.push(newPlayer);
+      curPlayer = newPlayer;
+      io.emit('new-player', {
+        id: newPlayer.id,
+        x: newPlayer.x,
+        y: newPlayer.y
+      })
     })
 
-    socket.on('newCoin', coinData => {
-      coin = {...coinData};
-      io.emit('newCoin', coinData);
-      log('new coin', coin.id);
-    })
+    socket.on('move-player', (dir, posObj) => {
+      serverLog('move player', curPlayer.id, posObj);
+      curPlayer.x = posObj.x;
+      curPlayer.y = posObj.y;
+      io.emit('move-player', {
+        id: curPlayer.id,
+        dir: dir,
+        posObj: posObj
+      })
+    });
 
-    socket.on('collision', (id, coinId) => {
-      log('collision', id, 'coin', coinId);
+    socket.on('stop-player', (dir, posObj) => {
+      serverLog('stop player', curPlayer.id, posObj);
+      curPlayer.x = posObj.x;
+      curPlayer.y = posObj.y;
+      io.emit('stop-player', {
+        id: curPlayer.id,
+        dir: dir,
+        posObj: posObj
+      })
+    });
 
-      if (coin.id === coinId && !coin.destroyed) {
-        coin.destroyed = true;
-        const newScore = players[id].score + coin.value;
-        io.emit('collision', id, newScore);
+    socket.on('destroy-item', ({ playerId, coinValue, coinId }) => {
+      if (coin.id === coinId) {
+        curPlayer.score += coinValue;
+        serverLog('player scores', curPlayer.id, curPlayer.score);
+        io.emit('update-player', { id: curPlayer.id, score: curPlayer.score });
       }
-    })
+      coin = newCoin();
+      io.emit('new-coin', coin);
+    });
 
     socket.on('disconnect', () => {
-      delete players[id];
-      io.emit('removePlayer', id);
-      log('remove player', id);
-      log('a user disconnected');
+      serverLog('user disconnected')
+      players = players.filter(player => player.id !== curPlayer.id);
+      io.emit('remove-player', curPlayer.id);
     })
   })
 }

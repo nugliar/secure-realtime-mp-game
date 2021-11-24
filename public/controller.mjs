@@ -1,28 +1,30 @@
-const controller = (player, socket) => {
-
-  const getKeyCode = (e) => {
-    const x = e.keyCode;
-    if (x == 37 || x == 65) return 'left';
-    if (x == 39 || x == 68) return 'right';
-    if (x == 40 || x == 83) return 'down';
-    if (x == 38 || x == 87) return 'up';
+const controls = (player, socket) => {
+  const getKey = e => {
+    if (e.keyCode === 87 || e.keyCode === 38) return 'up';
+    if (e.keyCode === 83 || e.keyCode === 40) return 'down';
+    if (e.keyCode === 65 || e.keyCode === 37) return 'left';
+    if (e.keyCode === 68 || e.keyCode === 39) return 'right';
   }
 
-  document.addEventListener('keydown', (e) => {
-    const dir = getKeyCode(e);
-    if (dir) {
-      player.setDirection(dir, true);
-      socket.emit('movePlayer', { dir: dir, x: player.x, y: player.y })
-    }
-  })
+  document.onkeydown = e => {
+    let dir = getKey(e);
 
-  document.addEventListener('keyup', (e) => {
-    const dir = getKeyCode(e);
     if (dir) {
-      player.setDirection(dir, false);
-      socket.emit('movePlayer', { dir: dir, x: player.x, y: player.y })
+      player.moveDir(dir);
+
+      socket.emit('move-player', dir, { x: player.x, y: player.y });
     }
-  })
+  }
+
+  document.onkeyup = e => {
+    let dir = getKey(e);
+
+    if (dir) {
+      player.stopDir(dir);
+
+      socket.emit('stop-player', dir, { x: player.x, y: player.y });
+    }
+  }
 }
 
-export default controller;
+export default controls;
