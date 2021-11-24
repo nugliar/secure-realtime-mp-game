@@ -27,8 +27,8 @@ socket.on('init', ({ id, players, coin }) => {
   cancelAnimationFrame(tick);
 
   const mainPlayer = new Player({
-    x: getRandomPosition(canvasProps.playFieldMinX, canvasProps.playFieldMaxX, 5),
-    y: getRandomPosition(canvasProps.playFieldMinY, canvasProps.playFieldMaxY, 5),
+    x: getRandomPosition(canvasProps.limitMinX, canvasProps.limitMaxX, 5),
+    y: getRandomPosition(canvasProps.limitMinY, canvasProps.limitMaxY, 5),
     id,
     main: true
   });
@@ -84,7 +84,7 @@ const draw = () => {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.strokeStyle = 'white';
-  ctx.strokeRect(canvasProps.playFieldMinX, canvasProps.playFieldMinY, canvasProps.playFieldWidth, canvasProps.playFieldHeight);
+  ctx.strokeRect(canvasProps.limitMinX, canvasProps.limitMinY, canvasProps.playFieldWidth, canvasProps.playFieldHeight);
 
   ctx.fillStyle = 'white';
   ctx.font = `16px 'Verdana'`;

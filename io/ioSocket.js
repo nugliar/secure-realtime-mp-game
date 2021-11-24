@@ -8,14 +8,15 @@ const newCoin = () => {
   return {
     id: Math.random().toString(16).slice(2),
     value: Math.floor(1 + Math.random() * 3),
-    x: getRandomPosition(canvasProps.playFieldMinX, canvasProps.playFieldMaxX, 5),
-    y: getRandomPosition(canvasProps.playFieldMinY, canvasProps.playFieldMaxY, 5)
+    x: getRandomPosition(canvasProps.limitMinX, canvasProps.limitMaxX, 5),
+    y: getRandomPosition(canvasProps.limitMinY, canvasProps.limitMaxY, 5)
   }
 }
 
 const ioSocket = (io) => {
   let coin = newCoin();
   let players = [];
+  let curDir;
 
   io.on('connection', (socket) => {
     serverLog('a user connected');
@@ -46,10 +47,13 @@ const ioSocket = (io) => {
         dir: dir,
         posObj: posObj
       })
+      if (curDir !== dir) {
+        serverLog('player', curPlayer.id, 'start move', dir.toUpperCase(), 'at', posObj);
+        curDir = dir;
+      }
     });
 
     socket.on('stop-player', (dir, posObj) => {
-      serverLog('player', curPlayer.id, 'moved to', posObj);
       curPlayer.x = posObj.x;
       curPlayer.y = posObj.y;
       io.emit('stop-player', {
@@ -57,6 +61,7 @@ const ioSocket = (io) => {
         dir: dir,
         posObj: posObj
       })
+      serverLog('player', curPlayer.id, 'stop move', dir.toUpperCase(), 'at', posObj);
     });
 
     socket.on('destroy-item', ({ playerId, coinValue, coinId }) => {

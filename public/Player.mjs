@@ -40,10 +40,10 @@ class Player {
   }
 
   movePlayer(dir, speed) {
-    if (dir === 'up') this.y - speed >= canvasProps.playFieldMinY ? this.y -= speed : this.y -= 0;
-    if (dir === 'down') this.y + speed <= canvasProps.playFieldMaxY ? this.y += speed : this.y += 0;
-    if (dir === 'left') this.x - speed >= canvasProps.playFieldMinX ? this.x -= speed : this.x -= 0;
-    if (dir === 'right') this.x + speed <= canvasProps.playFieldMaxX ? this.x += speed : this.x += 0;
+    if (dir === 'up') this.y - speed >= canvasProps.limitMinY ? this.y -= speed : this.y -= 0;
+    if (dir === 'down') this.y + speed <= canvasProps.limitMaxY ? this.y += speed : this.y += 0;
+    if (dir === 'left') this.x - speed >= canvasProps.limitMinX ? this.x -= speed : this.x -= 0;
+    if (dir === 'right') this.x + speed <= canvasProps.limitMaxX ? this.x += speed : this.x += 0;
   }
 
   collision(item) {
