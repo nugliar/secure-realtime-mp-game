@@ -39,7 +39,6 @@ const ioSocket = (io) => {
     })
 
     socket.on('move-player', (dir, posObj) => {
-      serverLog('move player', curPlayer.id, posObj);
       curPlayer.x = posObj.x;
       curPlayer.y = posObj.y;
       io.emit('move-player', {
@@ -50,7 +49,7 @@ const ioSocket = (io) => {
     });
 
     socket.on('stop-player', (dir, posObj) => {
-      serverLog('stop player', curPlayer.id, posObj);
+      serverLog('player', curPlayer.id, 'moved to', posObj);
       curPlayer.x = posObj.x;
       curPlayer.y = posObj.y;
       io.emit('stop-player', {
