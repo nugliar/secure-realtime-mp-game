@@ -98,9 +98,9 @@ const draw = () => {
     player.draw(ctx, item, { mainPlayerArt, otherPlayerArt }, currPlayers);
   });
 
-  item.draw(ctx, { coinArt, manyCoinsArt, dollarArt });
-
-  if (item.collectedBy) {
+  if (!item.collectedBy) {
+    item.draw(ctx, { coinArt, manyCoinsArt, dollarArt });
+  } else {
     socket.emit('destroy-item', { playerId: item.collectedBy, coinValue: item.value, coinId: item.id });
   }
 
